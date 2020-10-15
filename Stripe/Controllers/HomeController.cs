@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Stripe.Checkout;
 using Stripe.Models;
 
 namespace Stripe.Controllers
@@ -36,24 +37,42 @@ namespace Stripe.Controllers
 
 
 
-        [HttpGet]
-        [Route("create-payment-intent")]
-        public ActionResult Create()
+        [HttpPost("create-checkout-session")]
+        public ActionResult CreateCheckoutSession()
         {
-            var paymentIntents = new PaymentIntentService();
-            var paymentIntent = paymentIntents.Create(new PaymentIntentCreateOptions
+            var options = new SessionCreateOptions
             {
-                Amount = 1000,
-                Currency = "gbp",
-                PaymentMethodTypes = new List<string> {
-                        "card",
+                PaymentMethodTypes = new List<string>
+                {
+                    "card",
+                },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        Price = "price_1HcXrkG4Qj4VbiKAUJYTP764",
+                        Quantity = 1,
                     },
+                },
+                Mode = "subscription",
+                SuccessUrl = "http://localhost:55333",
+                CancelUrl = "http://localhost:55333",
+            };
 
-            }, new RequestOptions
+            var service = new SessionService();
+            try
             {
-                IdempotencyKey = Guid.NewGuid().ToString() // TODO: this id should be related to the Campaign(Id)
-            });
-            return Json(new { clientSecret = paymentIntent.ClientSecret });
+                Session session = service.Create(options);
+                return Json(new { id = session.Id });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
+
+            
         }
 
     }
