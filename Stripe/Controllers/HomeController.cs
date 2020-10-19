@@ -75,5 +75,65 @@ namespace Stripe.Controllers
             
         }
 
+
+        [HttpPost("stripe-events")]
+        public async Task<IActionResult> StripeEvents()
+        {
+            const string endpointSecret = "whsec_RxsYX0X8QkUOWwTEUWPmyYAUHVJqWcB0"; // TODO Get it from settings
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+
+            try
+            {
+                var stripeEvent = EventUtility.ConstructEvent(json,
+                    Request.Headers["Stripe-Signature"], endpointSecret);
+
+                // Handle the event
+                if (stripeEvent.Type == Events.InvoicePaid)
+                {
+                    var paymentIntent = stripeEvent.Data.Object as Invoice;
+                    // We can find customer By email and set current_period_end;
+                }
+                else if (stripeEvent.Type == Events.InvoicePaymentFailed)
+                {
+                    var invoice = stripeEvent.Data.Object as Invoice;
+                    // We can find user and notify about failed payment.
+                }
+                else if (stripeEvent.Type == Events.InvoicePaymentActionRequired)
+                {
+                    var invoice = stripeEvent.Data.Object as Invoice;
+                    // We can find user and notify about action required.
+                }
+                else if (stripeEvent.Type == Events.InvoiceUpcoming)
+                {
+                    var invoice = stripeEvent.Data.Object as Invoice;
+                    // We can find user and notify about upcoming payment.
+                }
+                else if (stripeEvent.Type == Events.CustomerCreated)
+                {
+                    var customer = stripeEvent.Data.Object as Customer;
+                    // Get extend our customer with a data from Stripe customer(Id)
+                }
+                else if (stripeEvent.Type == Events.CustomerSubscriptionCreated)
+                {
+                    var subscription = stripeEvent.Data.Object as Subscription;
+                    // Store subscription Id to be able to cancel it in the future.
+                }
+                else if (stripeEvent.Type == Events.CustomerSubscriptionUpdated)
+                {
+                    var subscription = stripeEvent.Data.Object as Subscription;
+                    // Here we can check the status of the subscription and change current_period_end for the user.
+                    // Useful when we have many subscriptions for one user. Other wise we can use InvoicePaid and InvoicePaymentFailed for this purpose.
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled event type: {0}", stripeEvent.Type);
+                }
+                return Ok();
+            }
+            catch (StripeException e)
+            {
+                return BadRequest();
+            }
+        }
     }
 }
