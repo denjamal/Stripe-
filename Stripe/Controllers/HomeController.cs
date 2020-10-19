@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -45,18 +46,16 @@ namespace Stripe.Controllers
                 PaymentMethodTypes = new List<string>
                 {
                     "card",
+                    "bacs_debit"
                 },
-                LineItems = new List<SessionLineItemOptions>
-                {
-                    new SessionLineItemOptions
-                    {
-                        Price = "price_1HcXrkG4Qj4VbiKAUJYTP764",
-                        Quantity = 1,
-                    },
-                },
-                Mode = "subscription",
+                Mode = "setup",
+                Customer = "cus_IDM9E5oSmBOkRA",
                 SuccessUrl = "http://localhost:55333",
                 CancelUrl = "http://localhost:55333",
+                Metadata = new Dictionary<string, string>
+                {
+
+                }
             };
 
             var service = new SessionService();
